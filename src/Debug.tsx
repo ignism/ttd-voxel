@@ -5,18 +5,18 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 const vertexTable = [
   [-0.5, -0.25, -0.5],
   [0.5, -0.25, -0.5],
-  [0.5, -0.25, 0.5],
   [-0.5, -0.25, 0.5],
+  [0.5, -0.25, 0.5],
+
   [-0.5, 0.25, -0.5],
   [0.5, 0.25, -0.5],
-  [0.5, 0.25, 0.5],
   [-0.5, 0.25, 0.5],
-  [0, -0.25, -0],
+  [0.5, 0.25, 0.5],
+
   [0, 0, -0.5],
-  [0.5, 0, -0],
   [0, 0, 0.5],
   [-0.5, 0, -0],
-  [0, 0.25, -0],
+  [0.5, 0, -0],
 ];
 
 // const triangleTable = [
@@ -353,22 +353,15 @@ const triangleTable = [
 type VertexLabelProps = {
   position: Vector3;
   index: number;
-  onClick: (index: number) => void;
+  isActive: boolean;
 };
 
-const VertexLabel = ({ position, index, onClick }: VertexLabelProps) => {
-  const [isActive, toggleActive] = useState(false);
-  const handleClick = () => {
-    toggleActive((state) => !state);
-    onClick(index);
-  };
-
+const VertexLabel = ({ position, index, isActive }: VertexLabelProps) => {
   const isCenterVertex = index >= 8 && index <= 13;
 
   return (
     <Html position={position}>
       <div
-        onClick={handleClick}
         className={`cursor-pointer rounded-full ${
           !isActive ? 'bg-slate-400' : isCenterVertex ? 'bg-orange-400' : 'bg-green-400'
         } hover:bg-white text-black -ml-2 -mt-2 w-4 h-4 text-xs select-none flex justify-center items-center`}
@@ -397,8 +390,11 @@ const Triangle = ({ vertices }: TriangleProps) => {
   );
 };
 
-const Debug = () => {
-  const [cubeIndex, setCubeIndex] = useState(0);
+type DebugProps = {
+  vertices: boolean[];
+};
+
+const Debug = ({ vertices }: DebugProps) => {
   const [triangles, setTriangles] = useState<number[][] | undefined>(undefined);
 
   const edges = useMemo(() => {
@@ -408,15 +404,9 @@ const Debug = () => {
     return edge;
   }, []);
 
-  const onClick = (index: number) => {
-    setCubeIndex(cubeIndex ^ (1 << index));
-  };
-
   useEffect(() => {
-    console.log(cubeIndex);
-
-    setTriangles(triangleTable.find((t) => t.index === cubeIndex)?.triangles);
-  }, [cubeIndex]);
+    console.log(vertices);
+  }, []);
 
   return (
     <>
@@ -426,7 +416,7 @@ const Debug = () => {
       </line>
 
       {vertexTable.map((v, index) => (
-        <VertexLabel key={`vertex-${index}`} position={new Vector3(...v)} index={index} onClick={onClick} />
+        <VertexLabel key={`vertex-${index}`} position={new Vector3(...v)} isActive={vertices[index]} index={index} />
       ))}
 
       {triangles?.map((vertices, index) => (

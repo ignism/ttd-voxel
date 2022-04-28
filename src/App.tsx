@@ -5,7 +5,7 @@ import Grid from './Grid';
 
 const App = () => {
   return (
-    <main className="bg-zinc-900 w-full h-screen">
+    <main className="w-full h-screen bg-zinc-900">
       <Canvas>
         <axesHelper />
         <OrbitControls />
