@@ -1,8 +1,10 @@
 import { Html } from '@react-three/drei';
-import { useEffect, useState } from 'react';
-import { Vector3 } from 'three';
+import { useFrame } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
+import { Vector3, BoxBufferGeometry, Object3D, Raycaster, Intersection } from 'three';
 import Debug from './Debug';
-import { useGridStore } from './utilities/gridStore';
+import { useBlockStore } from '../utilities/blockStore';
+import { useInterfaceStore } from '../utilities/interfaceStore';
 
 type VertexLabelProps = {
   isActive: boolean;
@@ -32,8 +34,24 @@ const VertexLabel = ({ isActive, position, color, index, onClick }: VertexLabelP
 };
 
 const Grid = () => {
-  const { grid, size, vertices, rampModifiers, toggleVertex, toggleRampModifier } = useGridStore();
+  const { blocks, size, vertices, rampModifiers, toggleBlock, toggleVertex, toggleRampModifier } = useBlockStore();
   const [debugPoints, setDebugPoints] = useState<boolean[]>([]);
+
+  const instances: Object3D[] = [];
+
+  blocks.forEach((state, index) => {
+    if (state) {
+      const x = (index % size.x) - size.x * 0.5;
+      const y = Math.floor(index / (size.x * size.z)) - size.y * 0.5;
+      const z = (Math.floor(index / size.x) % size.z) - size.z * 0.5;
+
+      const object = new Object3D();
+      object.position.set(x + 0.5, y + 0.5, z + 0.5);
+      object.updateMatrix();
+
+      instances.push(object);
+    }
+  });
 
   const getBlockVertices = (index: number): number[] => {
     const w = size.x + 1;
@@ -75,6 +93,8 @@ const Grid = () => {
   const handleBlockClick = (index: number) => {
     console.log(getBlockVertices(index));
 
+    toggleBlock(index);
+
     const state = [
       ...getBlockVertices(index)
         .slice(0, 8)
@@ -87,15 +107,13 @@ const Grid = () => {
     setDebugPoints(state);
   };
 
-  useEffect(() => {}, []);
-
   return (
     <>
       <group position={[-4, 0, 0]}>
         <Debug vertices={debugPoints} />
       </group>
 
-      {grid.map((state, index) => {
+      {blocks.map((state, index) => {
         const x = (index % size.x) - size.x * 0.5;
         const y = Math.floor(index / (size.x * size.z)) - size.y * 0.5;
         const z = (Math.floor(index / size.x) % size.z) - size.z * 0.5;
@@ -104,7 +122,7 @@ const Grid = () => {
         return (
           <VertexLabel
             key={`block-${index}`}
-            isActive={grid[index]}
+            isActive={blocks[index]}
             position={v}
             color={'green'}
             index={index}
