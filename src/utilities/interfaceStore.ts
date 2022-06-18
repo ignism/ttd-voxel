@@ -6,17 +6,21 @@ import create from 'zustand/vanilla';
 type InterfaceStore = {
   currentIntersection: Intersection | null;
   setCurrentIntersection: (intersection: Intersection | null) => void;
-  blockHovered: Vector3 | null;
-  setBlockHovered: (block: Vector3 | null) => void;
+  blockHovered: number | null;
+  setBlockHovered: (block: number | null) => void;
+  isDragging: boolean;
+  toggleDragging: (toggle?: boolean) => void;
 };
 
 const interfaceStore = create<InterfaceStore>()(
   devtools(
     (set, get) => ({
       currentIntersection: null,
-      setCurrentIntersection: (intersection) => set((state) => ({ currentIntersection: intersection })),
+      setCurrentIntersection: (intersection) => set(() => ({ currentIntersection: intersection })),
       blockHovered: null,
-      setBlockHovered: (block) => set((state) => ({ blockHovered: block })),
+      setBlockHovered: (block) => set(() => ({ blockHovered: block })),
+      isDragging: false,
+      toggleDragging: (toggle) => set((state) => ({ isDragging: toggle === undefined ? !state.isDragging : toggle })),
     }),
     { name: 'Interface store' }
   )

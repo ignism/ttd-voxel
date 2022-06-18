@@ -1,23 +1,29 @@
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { Vector3 } from 'three';
-import Block from './components/Block';
-import Debug from './components/Debug';
+import { useEffect, useRef } from 'react';
 import Grid from './components/Grid';
 import InterfaceManager from './components/InterfaceManager';
-import Scene from './components/Scene';
-import WithNeighbours from './components/WithNeighbours';
+import { initCanvasGestures } from './utilities/interfaceUtilities';
 
 const App = () => {
+  const canvas = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    console.log('render App');
+    if (canvas.current) {
+      initCanvasGestures(canvas.current);
+    }
+  }, []);
+
   return (
     <main className="w-full h-screen bg-zinc-900">
-      <Canvas>
+      <Canvas ref={canvas}>
         <axesHelper />
         <OrbitControls />
-        {/* <Grid /> */}
+        <Grid />
         {/* <Scene /> */}
         <InterfaceManager />
-        <Block position={new Vector3()} isDebugging={true} />
+        {/* <Block position={new Vector3()} isDebugging={true} /> */}
       </Canvas>
     </main>
   );

@@ -2,34 +2,21 @@ import { Box } from '@react-three/drei';
 import { useEffect, useRef, useState } from 'react';
 import { Intersection, Object3D, Vector3 } from 'three';
 import { useBlockStore } from '../utilities/blockStore';
+import { BlockType } from './Block';
 
 type IndicatorProps = {
-  instanceId: number;
+  block: BlockType;
 };
 
-const Indicator = ({ instanceId }: IndicatorProps) => {
-  const { size, blocks } = useBlockStore();
+const Indicator = ({ block }: IndicatorProps) => {
+  const { setBlock } = useBlockStore();
 
-  let indexForId = 0;
-  let counter = 0;
-
-  blocks.forEach((block, index) => {
-    if (block) {
-      if (counter === instanceId) {
-        indexForId = index;
-      }
-      counter++;
-    }
-  });
-
-  const x = (indexForId % size.x) - size.x * 0.5;
-  const y = Math.floor(indexForId / (size.x * size.z)) - size.y * 0.5;
-  const z = (Math.floor(indexForId / size.x) % size.z) - size.z * 0.5;
-
-  const position = new Vector3(x + 0.5, y + 1, z + 0.5);
+  const handleClick = () => {
+    setBlock(block.index, false);
+  };
 
   return (
-    <Box position={position} args={[0.1, 0.1, 0.1]}>
+    <Box position={block.position} args={[1.01, 0.51, 1.01]} onClick={handleClick}>
       <meshBasicMaterial color={'white'} />
     </Box>
   );
