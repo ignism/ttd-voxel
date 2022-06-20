@@ -4,29 +4,30 @@ import { devtools } from 'zustand/middleware';
 import create from 'zustand/vanilla';
 import type { BlockType } from '../components/Block';
 import {
+  clusterSize,
   isBlockAtPosition,
   getBlockIndexForPosition,
   getBlockPositionForIndex,
   getNeighboursForPosition,
+  getBlockArrayPositionForIndex,
+  isBlockBottomBlock,
 } from './blockUtilities';
 
-const width = 3;
-const height = 3;
-const length = 3;
+const initialBlocks: BlockType[] = Array.from({ length: clusterSize.x * clusterSize.y * clusterSize.z }).map(
+  (state, index) => {
+    const position = getBlockPositionForIndex(index);
+    const isActive = index < clusterSize.x * clusterSize.z;
+    const neighbours = getNeighboursForPosition(position);
 
-const initialBlocks: BlockType[] = Array.from({ length: width * height * length }).map((state, index) => {
-  const position = getBlockPositionForIndex(index);
-  const isActive = index < width * length;
-  const neighbours = getNeighboursForPosition(position);
-
-  return {
-    index: index,
-    isActive: isActive,
-    position: position,
-    vertices: Array.from({ length: 12 }).map(() => isActive),
-    neighbours: neighbours,
-  };
-});
+    return {
+      index: index,
+      isActive: isActive,
+      position: position,
+      vertices: Array.from({ length: 12 }).map(() => isActive),
+      neighbours: neighbours,
+    };
+  }
+);
 
 type BlockStore = {
   clusterSize: Vector3;
@@ -40,19 +41,23 @@ type BlockStore = {
 const blockStore = create<BlockStore>()(
   devtools(
     (set, get) => ({
-      clusterSize: new Vector3(width, height, length),
+      clusterSize: new Vector3(clusterSize.x, clusterSize.y, clusterSize.z),
 
       blockSize: 1,
 
       blocks: initialBlocks,
 
       setBlock: (index, isActive) => {
-        const currentBlocks = get().blocks.slice();
+        if (!isBlockBottomBlock(index)) {
+          const currentBlocks = get().blocks.slice();
 
-        currentBlocks[index].isActive = isActive;
-        currentBlocks[index].vertices = Array.from({ length: 12 }).map(() => isActive);
+          currentBlocks[index].isActive = isActive;
+          currentBlocks[index].vertices = Array.from({ length: 12 }).map(() => isActive);
 
-        set((state) => ({ blocks: currentBlocks }));
+          set((state) => ({ blocks: currentBlocks }));
+        } else {
+          console.log(`error, ${index} is bottomblock`);
+        }
       },
     }),
     { name: 'Grid store' }

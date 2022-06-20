@@ -20,6 +20,7 @@ const App = () => {
       <Canvas ref={canvas}>
         <axesHelper />
         <OrbitControls />
+        <pointLight position={[3, 3, 3]} />
         <Grid />
         {/* <Scene /> */}
         <InterfaceManager />

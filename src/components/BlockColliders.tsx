@@ -19,9 +19,13 @@ const BlockCollider = forwardRef<InstancedMesh, BlockColliderProps>(({ position,
   const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
 
-    console.log(blocks[index]);
-
-    setBlockHovered(index);
+    if (blocks[index].neighbours[5] >= 0) {
+      if (!blocks[blocks[index].neighbours[5]].isActive) {
+        setBlockHovered(index);
+      }
+    } else {
+      setBlockHovered(index);
+    }
   };
 
   return <Instance ref={ref} position={position} onPointerOver={handlePointerOver} />;
@@ -67,7 +71,7 @@ const BlockColliders = () => {
   return (
     <Instances range={instances.length} visible={true} onPointerOut={() => console.log('leave instances')}>
       <boxBufferGeometry args={[1, 0.5, 1]} />
-      <meshBasicMaterial color={'#44ff88'} wireframe={true} />
+      <meshStandardMaterial color={'#44ff88'} wireframe={false} />
       {instances.map((block, index) => (
         <BlockCollider
           ref={(ref) => {
@@ -83,5 +87,7 @@ const BlockColliders = () => {
     </Instances>
   );
 };
+
+BlockColliders.whyDidYouRender = true;
 
 export default BlockColliders;

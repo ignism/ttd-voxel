@@ -6,17 +6,14 @@ import { BlockType } from './Block';
 
 type IndicatorProps = {
   block: BlockType;
+  onClick?: () => void;
 };
 
-const Indicator = ({ block }: IndicatorProps) => {
-  const { setBlock } = useBlockStore();
-
-  const handleClick = () => {
-    setBlock(block.index, false);
-  };
+const Indicator = ({ block, onClick }: IndicatorProps) => {
+  const position = block.position.clone().add(new Vector3(0, 0.25, 0));
 
   return (
-    <Box position={block.position} args={[1.01, 0.51, 1.01]} onClick={handleClick}>
+    <Box position={position} args={[1.01, 0.01, 1.01]} onClick={onClick}>
       <meshBasicMaterial color={'white'} />
     </Box>
   );
