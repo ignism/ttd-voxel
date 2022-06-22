@@ -1,7 +1,8 @@
 import { Vector3 } from 'three';
+import { BlockType } from '../components/Block';
 import { blockStore } from './blockStore';
 
-const clusterSize = new Vector3(3, 3, 3);
+const clusterSize = new Vector3(1, 1, 1);
 
 const isBlockAtPosition = (position: Vector3): boolean => {
   if (position.x < 0 || position.x > clusterSize.x - 1) {
@@ -88,6 +89,64 @@ const getNeighboursForPosition = (position: Vector3) => {
   return [leftIndex, rightIndex, backIndex, frontIndex, bottomIndex, topIndex];
 };
 
+const getNeightbourVerticesForNeighboursInBlocks = (neighbours: number[], blocks: BlockType[]): boolean[] => {
+  const currentNeighbourVertices: boolean[] = [];
+
+  // left 0 2 4 6 8
+  if (neighbours[0] >= 0) {
+    currentNeighbourVertices.push(
+      blocks[neighbours[0]].vertices[3],
+      blocks[neighbours[0]].vertices[1],
+      blocks[neighbours[0]].vertices[7],
+      blocks[neighbours[0]].vertices[5],
+      blocks[neighbours[0]].vertices[9]
+    );
+  } else {
+    currentNeighbourVertices.push(false, false, false, false, false);
+  }
+
+  // right 3 1 7 5 9
+  if (neighbours[1] >= 0) {
+    currentNeighbourVertices.push(
+      blocks[neighbours[1]].vertices[0],
+      blocks[neighbours[1]].vertices[2],
+      blocks[neighbours[1]].vertices[4],
+      blocks[neighbours[1]].vertices[6],
+      blocks[neighbours[1]].vertices[8]
+    );
+  } else {
+    currentNeighbourVertices.push(false, false, false, false, false);
+  }
+
+  // back 1 0 5 4 10
+  if (neighbours[2] >= 0) {
+    currentNeighbourVertices.push(
+      blocks[neighbours[2]].vertices[1],
+      blocks[neighbours[2]].vertices[0],
+      blocks[neighbours[2]].vertices[5],
+      blocks[neighbours[2]].vertices[4],
+      blocks[neighbours[2]].vertices[10]
+    );
+  } else {
+    currentNeighbourVertices.push(false, false, false, false, false);
+  }
+
+  // front 2 3 6 7 11
+  if (neighbours[3] >= 0) {
+    currentNeighbourVertices.push(
+      blocks[neighbours[3]].vertices[2],
+      blocks[neighbours[3]].vertices[3],
+      blocks[neighbours[3]].vertices[6],
+      blocks[neighbours[3]].vertices[7],
+      blocks[neighbours[3]].vertices[11]
+    );
+  } else {
+    currentNeighbourVertices.push(false, false, false, false, false);
+  }
+
+  return currentNeighbourVertices;
+};
+
 const getBlockIndexForInstanceId = (instanceId: number): number => {
   const { blocks } = blockStore.getState();
 
@@ -116,5 +175,6 @@ export {
   getBlockIndexForArrayPosition,
   getBlockIndexForPosition,
   getNeighboursForPosition,
+  getNeightbourVerticesForNeighboursInBlocks,
   getBlockIndexForInstanceId,
 };

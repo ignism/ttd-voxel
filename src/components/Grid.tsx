@@ -21,7 +21,7 @@ const Grid = () => {
   return (
     <>
       {blocks.map((block) => {
-        return <Block key={block.index} {...block} isDebugging={block.index === blockHovered} />;
+        if (block.isActive) return <Block key={block.index} {...block} isDebugging={true} />;
       })}
       <BlockColliders />
     </>

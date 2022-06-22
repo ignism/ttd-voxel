@@ -69,7 +69,7 @@ const BlockColliders = () => {
   });
 
   return (
-    <Instances range={instances.length} visible={true} onPointerOut={() => console.log('leave instances')}>
+    <Instances range={instances.length} visible={false} onPointerOut={() => console.log('leave instances')}>
       <boxBufferGeometry args={[1, 0.5, 1]} />
       <meshStandardMaterial color={'#44ff88'} wireframe={false} />
       {instances.map((block, index) => (

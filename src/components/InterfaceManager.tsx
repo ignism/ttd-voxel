@@ -69,7 +69,7 @@ const InterfaceManager = ({}: InterfaceManagerProps) => {
           </UIButton>
         </div>
       </Html>
-      {blockHovered !== null && <Indicator block={blocks[blockHovered]} onClick={handleIndicatorClick} />}
+      {/* {blockHovered !== null && <Indicator block={blocks[blockHovered]} onClick={handleIndicatorClick} />} */}
     </>
   );
 };
