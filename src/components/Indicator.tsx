@@ -2,7 +2,7 @@ import { Box } from '@react-three/drei';
 import { useEffect, useRef, useState } from 'react';
 import { Intersection, Object3D, Vector3 } from 'three';
 import { useClusterStore } from '../utilities/clusterStore';
-import { BlockType } from './Block';
+import { BlockType } from './DebugBlock';
 
 type IndicatorProps = {
   block: BlockType;

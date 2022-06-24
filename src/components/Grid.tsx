@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useClusterStore } from '../utilities/clusterStore';
 import { useInterfaceStore } from '../utilities/interfaceStore';
-import Block from './Block';
+import Block from './DebugBlock';
 import BlockColliders from './BlockColliders';
 
 type GridProps = {};

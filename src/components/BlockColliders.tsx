@@ -5,7 +5,7 @@ import { InstancedMesh, Object3D, Raycaster, Vector3 } from 'three';
 import { useClusterStore } from '../utilities/clusterStore';
 import { getBlockIndexForInstanceId } from '../utilities/clusterUtilities';
 import { useInterfaceStore } from '../utilities/interfaceStore';
-import { BlockType } from './Block';
+import { BlockType } from './DebugBlock';
 
 type BlockColliderProps = {
   position: Vector3;

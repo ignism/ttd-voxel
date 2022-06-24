@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { BlockType } from '../components/Block';
+import { BlockType } from '../components/DebugBlock';
 import { clusterStore } from './clusterStore';
 
 const clusterSize = new Vector3(1, 1, 1);

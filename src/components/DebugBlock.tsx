@@ -3,7 +3,8 @@ import { BoxGeometry, BufferAttribute, BufferGeometry, EdgesGeometry, Mesh, Vect
 import { useClusterStore } from '../utilities/clusterStore';
 import { getNeightbourVerticesForNeighboursInBlocks } from '../utilities/clusterUtilities';
 import VertexLabel from './VertexLabel';
-import { getWallTriangles } from '../utilities/blockUtilities';
+
+//
 
 const vertexTable = [
   [-0.5, -0.25, -0.5],
@@ -217,6 +218,34 @@ const Triangle = ({ vertices }: TriangleProps) => {
 
 //
 
+const getWallTriangles = (indices: number[], vertices: boolean[], neighbourVertices: boolean[]): number[][] => {
+  const triangleTable = [
+    [0, 1, 4],
+    [1, 3, 4],
+    [2, 0, 4],
+    [3, 2, 4],
+  ];
+
+  const triangles = triangleTable
+    .filter((vertexIndices) => {
+      // filter triangles where all vertices are true
+      return vertices[vertexIndices[0]] && vertices[vertexIndices[1]] && vertices[vertexIndices[2]];
+    })
+    .filter((vertexIndices) => {
+      // filter triangles if there is a neighbour triangle missing, so when one member of neighbourVertices equals false
+      return !(
+        neighbourVertices[vertexIndices[0]] &&
+        neighbourVertices[vertexIndices[1]] &&
+        neighbourVertices[vertexIndices[2]]
+      );
+    })
+    .map((tableIndices) => {
+      return [indices[tableIndices[0]], indices[tableIndices[1]], indices[tableIndices[2]]];
+    });
+
+  return triangles;
+};
+
 export type BlockType = {
   index: number;
   isActive: boolean;
@@ -234,37 +263,60 @@ type BlockProps = {
   isDebugging?: boolean;
 };
 
-const Block = ({ isActive, index, neighbours, position, vertices, isDebugging = false }: BlockProps) => {
+const DebugBlock = ({ isActive, index, neighbours, position, vertices, isDebugging = false }: BlockProps) => {
   const { blocks } = useClusterStore();
   const [neighbourVertices, setNeighbourVertices] = useState<boolean[]>(Array.from({ length: 16 }).map(() => false));
   const [geometry, setGeometry] = useState<Mesh>(new Mesh());
+  const [debugVertices, setDebugVertices] = useState<boolean[]>([]);
   const [triangles, setTriangles] = useState<number[][] | null>(null);
+
+  const handleClick = (index: number) => {
+    const currentVertices = debugVertices.slice();
+    currentVertices[index] = !currentVertices[index];
+    setDebugVertices(currentVertices);
+  };
 
   useEffect(() => {
     const currentNeighbourVertices: boolean[] = getNeightbourVerticesForNeighboursInBlocks(neighbours, blocks);
     setNeighbourVertices(currentNeighbourVertices);
+  }, [blocks, neighbours]);
+
+  useEffect(() => {
+    setDebugVertices(vertices);
+  }, []);
+
+  useEffect(() => {
+    let total = 0;
+
+    debugVertices.forEach((v, index) => {
+      total += v ? Math.pow(2, index) : 0;
+    });
 
     const tableIndex = vertices
       .map((vertex, index) => (vertex ? Math.pow(2, index) : 0))
       .reduce((previous, current) => previous + current);
 
-    const topTriangles = triangleTable.find((table) => table.index === tableIndex)?.triangles;
+    const tableVertices = debugVertices.map((vertex, index) => (vertex ? Math.pow(2, index) : 0));
+
+    console.log('!!!!!', tableVertices);
+
+    const topTriangles = triangleTable.find((table) => table.index === total)?.triangles;
 
     const leftTriangles = getWallTriangles(
       [0, 2, 4, 6, 8],
-      [vertices[0], vertices[2], vertices[4], vertices[6], vertices[8]],
+      [debugVertices[0], debugVertices[2], debugVertices[4], debugVertices[6], debugVertices[8]],
       [neighbourVertices[0], neighbourVertices[1], neighbourVertices[2], neighbourVertices[3], neighbourVertices[4]]
     );
 
     const rightTriangles = getWallTriangles(
       [3, 1, 7, 5, 9],
-      [vertices[3], vertices[1], vertices[7], vertices[5], vertices[9]],
+      [debugVertices[3], debugVertices[1], debugVertices[7], debugVertices[5], debugVertices[9]],
       [neighbourVertices[5], neighbourVertices[6], neighbourVertices[7], neighbourVertices[8], neighbourVertices[9]]
     );
 
     const backTriangles = getWallTriangles(
       [1, 0, 5, 4, 10],
-      [vertices[1], vertices[0], vertices[5], vertices[4], vertices[10]],
+      [debugVertices[1], debugVertices[0], debugVertices[5], debugVertices[4], debugVertices[10]],
       [
         neighbourVertices[10],
         neighbourVertices[11],
@@ -276,7 +328,7 @@ const Block = ({ isActive, index, neighbours, position, vertices, isDebugging = 
 
     const frontTriangles = getWallTriangles(
       [2, 3, 6, 7, 11],
-      [vertices[2], vertices[3], vertices[6], vertices[7], vertices[11]],
+      [debugVertices[2], debugVertices[3], debugVertices[6], debugVertices[7], debugVertices[11]],
       [
         neighbourVertices[15],
         neighbourVertices[16],
@@ -286,14 +338,64 @@ const Block = ({ isActive, index, neighbours, position, vertices, isDebugging = 
       ]
     );
 
-    const triangles = topTriangles
+    const triangleVertices = topTriangles
       ?.concat(leftTriangles)
       .concat(rightTriangles)
       .concat(backTriangles)
       .concat(frontTriangles);
+
+    if (triangleVertices) {
+      setTriangles(triangleVertices);
+    } else {
+      setTriangles(null);
+    }
+  }, [debugVertices]);
+
+  const edges = useMemo(() => {
+    const box = new BoxGeometry(1, 0.5, 1);
+    const edge = new EdgesGeometry(box);
+
+    return edge;
   }, []);
 
-  return <></>;
+  return (
+    <>
+      <group position={position}>
+        <line>
+          <lineSegments args={[edges]} />
+          <lineBasicMaterial />
+        </line>
+
+        {triangles?.map((vertices, index) => (
+          <Triangle key={`triangle-${index}`} vertices={vertices} />
+        ))}
+
+        {isDebugging &&
+          vertexTable.map((v, index) => (
+            <VertexLabel
+              key={`vertex-${index}`}
+              position={new Vector3(...v)}
+              isActive={debugVertices[index]}
+              onClick={() => handleClick(index)}
+              index={index}
+              color={'bg-orange-400'}
+            />
+          ))}
+        {isDebugging &&
+          neighbourTable.map((n, index) => {
+            return (
+              <VertexLabel
+                key={`neighbour-${index}`}
+                position={new Vector3(...n)}
+                isActive={neighbourVertices[index]}
+                index={index}
+                color={'bg-teal-400'}
+              />
+            );
+          })}
+      </group>
+    </>
+  );
 };
 
-export default Block;
+export default DebugBlock;

@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import createHook from 'zustand';
 import { devtools } from 'zustand/middleware';
 import create from 'zustand/vanilla';
-import type { BlockType } from '../components/Block';
+import type { BlockType } from '../components/DebugBlock';
 import {
   clusterSize,
   isBlockAtPosition,
