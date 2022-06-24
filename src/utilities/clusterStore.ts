@@ -11,7 +11,7 @@ import {
   getNeighboursForPosition,
   getBlockArrayPositionForIndex,
   isBlockBottomBlock,
-} from './blockUtilities';
+} from './clusterUtilities';
 
 const initialBlocks: BlockType[] = Array.from({ length: clusterSize.x * clusterSize.y * clusterSize.z }).map(
   (state, index) => {
@@ -34,11 +34,9 @@ type BlockStore = {
   blockSize: number;
   blocks: BlockType[];
   setBlock: (index: number, isActive: boolean) => void;
-  // toggleVertex: (index: number, toggle?: boolean) => void;
-  // toggleRampModifier: (index: number, toggle?: boolean) => void;
 };
 
-const blockStore = create<BlockStore>()(
+const clusterStore = create<BlockStore>()(
   devtools(
     (set, get) => ({
       clusterSize: new Vector3(clusterSize.x, clusterSize.y, clusterSize.z),
@@ -64,6 +62,6 @@ const blockStore = create<BlockStore>()(
   )
 );
 
-const useBlockStore = createHook(blockStore);
+const useClusterStore = createHook(clusterStore);
 
-export { blockStore, useBlockStore };
+export { clusterStore, useClusterStore };

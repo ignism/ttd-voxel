@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { BlockType } from '../components/Block';
-import { blockStore } from './blockStore';
+import { clusterStore } from './clusterStore';
 
 const clusterSize = new Vector3(1, 1, 1);
 
@@ -148,7 +148,7 @@ const getNeightbourVerticesForNeighboursInBlocks = (neighbours: number[], blocks
 };
 
 const getBlockIndexForInstanceId = (instanceId: number): number => {
-  const { blocks } = blockStore.getState();
+  const { blocks } = clusterStore.getState();
 
   let indexForId = -1;
   let counter = 0;

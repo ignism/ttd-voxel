@@ -1,5 +1,5 @@
 import { Html } from '@react-three/drei';
-import { useBlockStore } from '../utilities/blockStore';
+import { useClusterStore } from '../utilities/clusterStore';
 import { useInterfaceStore } from '../utilities/interfaceStore';
 import Indicator from './Indicator';
 import { TbCircleMinus, TbCirclePlus } from 'react-icons/tb';
@@ -26,7 +26,7 @@ const UIButton = ({ isActive, onClick, children }: UIButtonProps) => {
 };
 
 const InterfaceManager = ({}: InterfaceManagerProps) => {
-  const { blocks, setBlock } = useBlockStore();
+  const { blocks, setBlock } = useClusterStore();
   const { blockHovered, setBlockHovered, currentUISelection, setCurrentUISelection } = useInterfaceStore();
 
   const handlePlusClick = () => {

@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import { Vector3, BoxBufferGeometry, Object3D, Raycaster, Intersection } from 'three';
 import Debug from './Debug';
-import { useBlockStore } from '../utilities/blockStore';
+import { useClusterStore } from '../utilities/clusterStore';
 import { useInterfaceStore } from '../utilities/interfaceStore';
 
 type VertexLabelProps = {
@@ -34,7 +34,7 @@ const VertexLabel = ({ isActive, position, color, index, onClick }: VertexLabelP
 };
 
 const Grid = () => {
-  const { blocks, size, vertices, rampModifiers, toggleBlock, toggleVertex, toggleRampModifier } = useBlockStore();
+  const { blocks, size, vertices, rampModifiers, toggleBlock, toggleVertex, toggleRampModifier } = useClusterStore();
   const [debugPoints, setDebugPoints] = useState<boolean[]>([]);
 
   const instances: Object3D[] = [];

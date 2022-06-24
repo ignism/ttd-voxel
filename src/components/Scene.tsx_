@@ -2,7 +2,7 @@ import { Instances, Instance } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import { throttle } from 'lodash';
 import { Object3D, Vector3 } from 'three';
-import { useBlockStore } from '../utilities/blockStore';
+import { useClusterStore } from '../utilities/clusterStore';
 import { useInterfaceStore } from '../utilities/interfaceStore';
 import Pointer from './Pointer';
 
@@ -11,7 +11,7 @@ import Pointer from './Pointer';
 // };
 
 const BlockColliders = () => {
-  const { blocks, size } = useBlockStore();
+  const { blocks, size } = useClusterStore();
 
   const instances: Object3D[] = [];
 
@@ -63,7 +63,7 @@ const BlockCollider = ({ position }: { position: Vector3 }) => {
 
 const Scene = () => {
   const { blockHovered } = useInterfaceStore();
-  const { blocks } = useBlockStore();
+  const { blocks } = useClusterStore();
 
   return (
     <>

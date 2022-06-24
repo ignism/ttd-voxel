@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useBlockStore } from '../utilities/blockStore';
+import { useClusterStore } from '../utilities/clusterStore';
 import { useInterfaceStore } from '../utilities/interfaceStore';
 import Block from './Block';
 import BlockColliders from './BlockColliders';
@@ -7,7 +7,7 @@ import BlockColliders from './BlockColliders';
 type GridProps = {};
 
 const Grid = () => {
-  const { blocks } = useBlockStore();
+  const { blocks } = useClusterStore();
   const { blockHovered } = useInterfaceStore();
 
   useEffect(() => {

@@ -2,8 +2,8 @@ import { Instance, Instances } from '@react-three/drei';
 import { ThreeEvent, useFrame } from '@react-three/fiber';
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { InstancedMesh, Object3D, Raycaster, Vector3 } from 'three';
-import { useBlockStore } from '../utilities/blockStore';
-import { getBlockIndexForInstanceId } from '../utilities/blockUtilities';
+import { useClusterStore } from '../utilities/clusterStore';
+import { getBlockIndexForInstanceId } from '../utilities/clusterUtilities';
 import { useInterfaceStore } from '../utilities/interfaceStore';
 import { BlockType } from './Block';
 
@@ -14,7 +14,7 @@ type BlockColliderProps = {
 
 const BlockCollider = forwardRef<InstancedMesh, BlockColliderProps>(({ position, index }, ref) => {
   const { setBlockHovered } = useInterfaceStore();
-  const { blocks } = useBlockStore();
+  const { blocks } = useClusterStore();
 
   const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
@@ -38,7 +38,7 @@ const BlockCollider = forwardRef<InstancedMesh, BlockColliderProps>(({ position,
 const BlockColliders = () => {
   const colliderRefs = useRef<InstancedMesh[]>([]);
   const { setBlockHovered, blockHovered } = useInterfaceStore();
-  const { blocks } = useBlockStore();
+  const { blocks } = useClusterStore();
   const instances: BlockType[] = [];
 
   blocks.forEach((block) => {

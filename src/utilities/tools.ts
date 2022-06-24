@@ -1,7 +1,7 @@
-import { blockStore } from './blockStore';
+import { clusterStore } from './clusterStore';
 
 const getBlockIndexForInstanceId = (instanceId: number): number => {
-  const { blocks } = blockStore.getState();
+  const { blocks } = clusterStore.getState();
 
   let indexForId = -1;
   let counter = 0;
