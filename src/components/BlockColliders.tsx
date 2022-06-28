@@ -28,7 +28,7 @@ const BlockCollider = forwardRef<InstancedMesh, BlockColliderProps>(({ position,
     }
   };
 
-  return <Instance ref={ref} position={position} onPointerOver={handlePointerOver} />;
+  return <Instance ref={ref} position={position} />;
 });
 
 // type BlockCollidersProps = {
@@ -69,7 +69,7 @@ const BlockColliders = () => {
   });
 
   return (
-    <Instances range={instances.length} visible={false} onPointerOut={() => console.log('leave instances')}>
+    <Instances range={instances.length} visible={false}>
       <boxBufferGeometry args={[1, 0.5, 1]} />
       <meshStandardMaterial color={'#44ff88'} wireframe={false} />
       {instances.map((block, index) => (

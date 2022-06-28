@@ -2,15 +2,15 @@ import { Vector3 } from 'three';
 import createHook from 'zustand';
 import { devtools } from 'zustand/middleware';
 import create from 'zustand/vanilla';
+import { ClusterType } from '../components/Cluster';
 import type { BlockType } from '../components/DebugBlock';
 import {
   clusterSize,
-  isBlockAtPosition,
-  getBlockIndexForPosition,
   getBlockPositionForIndex,
+  getClusterPositionForIndex,
   getNeighboursForPosition,
-  getBlockArrayPositionForIndex,
   isBlockBottomBlock,
+  worldSize,
 } from './clusterUtilities';
 
 const initialBlocks: BlockType[] = Array.from({ length: clusterSize.x * clusterSize.y * clusterSize.z }).map(
@@ -29,19 +29,32 @@ const initialBlocks: BlockType[] = Array.from({ length: clusterSize.x * clusterS
   }
 );
 
-type BlockStore = {
+const initialClusters: ClusterType[] = Array.from({ length: worldSize.x * worldSize.y * worldSize.z }).map(
+  (state, index) => ({
+    index: index,
+    position: getClusterPositionForIndex(index),
+    blocks: initialBlocks,
+  })
+);
+
+type ClusterStore = {
   clusterSize: Vector3;
-  blockSize: number;
+  clusters: ClusterType[];
+  setCluster: (index: number, blocks: BlockType[], position: Vector3) => void;
   blocks: BlockType[];
   setBlock: (index: number, isActive: boolean) => void;
 };
 
-const clusterStore = create<BlockStore>()(
+const clusterStore = create<ClusterStore>()(
   devtools(
     (set, get) => ({
       clusterSize: new Vector3(clusterSize.x, clusterSize.y, clusterSize.z),
 
       blockSize: 1,
+
+      clusters: initialClusters,
+
+      setCluster: (index, blocks, position) => {},
 
       blocks: initialBlocks,
 
@@ -58,7 +71,7 @@ const clusterStore = create<BlockStore>()(
         }
       },
     }),
-    { name: 'Grid store' }
+    { name: 'Cluster store' }
   )
 );
 

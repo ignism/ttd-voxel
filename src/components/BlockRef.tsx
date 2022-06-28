@@ -234,74 +234,79 @@ type BlockProps = {
   isDebugging?: boolean;
 };
 
-const Block = ({ isActive, index, neighbours, position, vertices, isDebugging = false }: BlockProps) => {
-  const { blocks } = useClusterStore();
-  const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
-
-  useEffect(() => {
-    const neighbourVertices: boolean[] = getNeightbourVerticesForNeighboursInBlocks(neighbours, blocks);
-
-    const tableIndex = vertices
-      .map((vertex, index) => (vertex ? Math.pow(2, index) : 0))
-      .reduce((previous, current) => previous + current);
-
-    const topTriangles = triangleTable.find((table) => table.index === tableIndex)?.triangles;
-
-    if (topTriangles) {
-      const leftTriangles = getWallTriangles(
-        [0, 2, 4, 6, 8],
-        [vertices[0], vertices[2], vertices[4], vertices[6], vertices[8]],
-        [neighbourVertices[0], neighbourVertices[1], neighbourVertices[2], neighbourVertices[3], neighbourVertices[4]]
-      );
-
-      const rightTriangles = getWallTriangles(
-        [3, 1, 7, 5, 9],
-        [vertices[3], vertices[1], vertices[7], vertices[5], vertices[9]],
-        [neighbourVertices[5], neighbourVertices[6], neighbourVertices[7], neighbourVertices[8], neighbourVertices[9]]
-      );
-
-      const backTriangles = getWallTriangles(
-        [1, 0, 5, 4, 10],
-        [vertices[1], vertices[0], vertices[5], vertices[4], vertices[10]],
-        [
-          neighbourVertices[10],
-          neighbourVertices[11],
-          neighbourVertices[12],
-          neighbourVertices[13],
-          neighbourVertices[14],
-        ]
-      );
-
-      const frontTriangles = getWallTriangles(
-        [2, 3, 6, 7, 11],
-        [vertices[2], vertices[3], vertices[6], vertices[7], vertices[11]],
-        [
-          neighbourVertices[15],
-          neighbourVertices[16],
-          neighbourVertices[17],
-          neighbourVertices[18],
-          neighbourVertices[19],
-        ]
-      );
-
-      const triangles = topTriangles
-        .concat(leftTriangles)
-        .concat(rightTriangles)
-        .concat(backTriangles)
-        .concat(frontTriangles);
-
-      setGeometry(geometryFromTriangles(position, triangles));
-    }
-  }, []);
-
-  return (
-    <>
-      {geometry && (
-        <mesh geometry={geometry}>
-          <meshStandardMaterial />
-        </mesh>
-      )}
-    </>
-  );
+export type BlockRef = {
+  geometry: BufferGeometry | null;
 };
+
+const Block = forwardRef<BlockRef, BlockProps>(
+  ({ isActive, index, neighbours, position, vertices, isDebugging = false }, ref) => {
+    const { blocks } = useClusterStore();
+    const [neighbourVertices, setNeighbourVertices] = useState<boolean[]>(Array.from({ length: 16 }).map(() => false));
+    const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
+
+    useImperativeHandle(ref, () => ({
+      geometry: geometry,
+    }));
+
+    useEffect(() => {
+      const currentNeighbourVertices: boolean[] = getNeightbourVerticesForNeighboursInBlocks(neighbours, blocks);
+      setNeighbourVertices(currentNeighbourVertices);
+
+      const tableIndex = vertices
+        .map((vertex, index) => (vertex ? Math.pow(2, index) : 0))
+        .reduce((previous, current) => previous + current);
+
+      const topTriangles = triangleTable.find((table) => table.index === tableIndex)?.triangles;
+
+      if (topTriangles) {
+        const leftTriangles = getWallTriangles(
+          [0, 2, 4, 6, 8],
+          [vertices[0], vertices[2], vertices[4], vertices[6], vertices[8]],
+          [neighbourVertices[0], neighbourVertices[1], neighbourVertices[2], neighbourVertices[3], neighbourVertices[4]]
+        );
+
+        const rightTriangles = getWallTriangles(
+          [3, 1, 7, 5, 9],
+          [vertices[3], vertices[1], vertices[7], vertices[5], vertices[9]],
+          [neighbourVertices[5], neighbourVertices[6], neighbourVertices[7], neighbourVertices[8], neighbourVertices[9]]
+        );
+
+        const backTriangles = getWallTriangles(
+          [1, 0, 5, 4, 10],
+          [vertices[1], vertices[0], vertices[5], vertices[4], vertices[10]],
+          [
+            neighbourVertices[10],
+            neighbourVertices[11],
+            neighbourVertices[12],
+            neighbourVertices[13],
+            neighbourVertices[14],
+          ]
+        );
+
+        const frontTriangles = getWallTriangles(
+          [2, 3, 6, 7, 11],
+          [vertices[2], vertices[3], vertices[6], vertices[7], vertices[11]],
+          [
+            neighbourVertices[15],
+            neighbourVertices[16],
+            neighbourVertices[17],
+            neighbourVertices[18],
+            neighbourVertices[19],
+          ]
+        );
+
+        const triangles = topTriangles
+          .concat(leftTriangles)
+          .concat(rightTriangles)
+          .concat(backTriangles)
+          .concat(frontTriangles);
+
+        setGeometry(geometryFromTriangles(position, triangles));
+      }
+    }, []);
+
+    return <></>;
+  }
+);
+
 export default Block;

@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
-
+import { mergeBufferGeometries } from 'three-stdlib';
 /**
  * Get triangle vertices for a wall.
  * @example indices[]:
@@ -62,18 +62,18 @@ const geometryFromTriangles = (blockPosition: Vector3, triangles: number[][]) =>
     [0, 0, 0.5],
   ];
 
-  const triangleGeometries: BufferGeometry[] = [];
-
-  triangles.forEach((vertices) => {
-    const position = vertices
-      .map((index) => {
-        return [
-          vertexTable[index][0] + blockPosition.x,
-          vertexTable[index][1] + blockPosition.y,
-          vertexTable[index][2] + blockPosition.z,
-        ];
-      })
-      .flat();
+  const triangleGeometries = triangles.map((vertices) => {
+    const position = new Float32Array(
+      vertices
+        .map((index) => {
+          return [
+            vertexTable[index][0] + blockPosition.x,
+            vertexTable[index][1] + blockPosition.y,
+            vertexTable[index][2] + blockPosition.z,
+          ];
+        })
+        .flat()
+    );
 
     const attribute = new BufferAttribute(position, 3);
     const geometry = new BufferGeometry();
@@ -81,8 +81,10 @@ const geometryFromTriangles = (blockPosition: Vector3, triangles: number[][]) =>
     geometry.setAttribute('position', attribute);
     geometry.computeVertexNormals();
 
-    triangleGeometries.push(geometry);
+    return geometry;
   });
+
+  return mergeBufferGeometries(triangleGeometries);
 };
 
-export { getWallTriangles };
+export { getWallTriangles, geometryFromTriangles };

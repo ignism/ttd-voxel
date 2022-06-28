@@ -2,7 +2,9 @@ import { Vector3 } from 'three';
 import { BlockType } from '../components/DebugBlock';
 import { clusterStore } from './clusterStore';
 
-const clusterSize = new Vector3(1, 1, 1);
+const worldSize = new Vector3(2, 2, 2);
+const clusterSize = new Vector3(8, 8, 8);
+const blockSize = new Vector3(1, 0.5, 1);
 
 const isBlockAtPosition = (position: Vector3): boolean => {
   if (position.x < 0 || position.x > clusterSize.x - 1) {
@@ -29,7 +31,7 @@ const getBlockArrayPositionForPosition = (position: Vector3): Vector3 => {
 
   const offset = new Vector3(x, y, z);
 
-  const arrayPosition = position.clone().multiply(new Vector3(1, 2, 1)).add(offset);
+  const arrayPosition = position.clone().divide(blockSize).add(offset);
 
   return arrayPosition;
 };
@@ -46,8 +48,36 @@ const getBlockArrayPositionForIndex = (index: number): Vector3 => {
 
 const getBlockPositionForIndex = (index: number): Vector3 => {
   const arrayPosition = getBlockArrayPositionForIndex(index);
-  const offset = (clusterSize.x - 1) * 0.5;
-  const position = arrayPosition.clone().addScalar(-offset).multiply(new Vector3(1, 0.5, 1));
+
+  const x = (clusterSize.x - 1) * 0.5;
+  const y = (clusterSize.y - 1) * 0.5;
+  const z = (clusterSize.z - 1) * 0.5;
+  const offset = new Vector3(x, y, z);
+
+  const position = arrayPosition.clone().sub(offset).multiply(blockSize);
+
+  return position;
+};
+
+const getClusterArrayPositionForIndex = (index: number): Vector3 => {
+  const x = index % worldSize.x;
+  const y = Math.floor(index / (worldSize.x * worldSize.z));
+  const z = Math.floor(index / worldSize.x) % worldSize.z;
+
+  const arrayPosition = new Vector3(x, y, z);
+
+  return arrayPosition;
+};
+
+const getClusterPositionForIndex = (index: number): Vector3 => {
+  const arrayPosition = getClusterArrayPositionForIndex(index);
+
+  const x = (worldSize.x - 1) * 0.5;
+  const y = (worldSize.y - 1) * 0.5;
+  const z = (worldSize.z - 1) * 0.5;
+  const offset = new Vector3(x, y, z);
+
+  const position = arrayPosition.clone().sub(offset).multiply(clusterSize).multiply(blockSize);
 
   return position;
 };
@@ -87,6 +117,23 @@ const getNeighboursForPosition = (position: Vector3) => {
   const topIndex = isBlockAtPosition(top) ? getBlockIndexForArrayPosition(top) : -1;
 
   return [leftIndex, rightIndex, backIndex, frontIndex, bottomIndex, topIndex];
+};
+
+const getNeighboursForWorldPosition = (worldPosition: Vector3) => {
+  // const arrayPosition = getBlockArrayPositionForPosition(position);
+  // const left = worldPosition.clone().add(new Vector3(-blockSize.x, 0, 0));
+  // const right = worldPosition.clone().add(new Vector3(blockSize.x, 0, 0));
+  // const back = worldPosition.clone().add(new Vector3(0, 0, -blockSize.y));
+  // const front = worldPosition.clone().add(new Vector3(0, 0, blockSize.y));
+  // const bottom = worldPosition.clone().add(new Vector3(0, -blockSize.z, 0));
+  // const top = worldPosition.clone().add(new Vector3(0, blockSize.z, 0));
+  // const leftIndex = isBlockAtWorldPosition(left) ? getBlockIndexForArrayPosition(left) : -1;
+  // const rightIndex = isBlockAtWorldPosition(right) ? getBlockIndexForArrayPosition(right) : -1;
+  // const backIndex = isBlockAtWorldPosition(back) ? getBlockIndexForArrayPosition(back) : -1;
+  // const frontIndex = isBlockAtWorldPosition(front) ? getBlockIndexForArrayPosition(front) : -1;
+  // const bottomIndex = isBlockAtWorldPosition(bottom) ? getBlockIndexForArrayPosition(bottom) : -1;
+  // const topIndex = isBlockAtWorldPosition(top) ? getBlockIndexForArrayPosition(top) : -1;
+  // return [leftIndex, rightIndex, backIndex, frontIndex, bottomIndex, topIndex];
 };
 
 const getNeightbourVerticesForNeighboursInBlocks = (neighbours: number[], blocks: BlockType[]): boolean[] => {
@@ -166,15 +213,20 @@ const getBlockIndexForInstanceId = (instanceId: number): number => {
 };
 
 export {
+  worldSize,
   clusterSize,
+  blockSize,
   isBlockAtPosition,
   isBlockBottomBlock,
   getBlockArrayPositionForPosition,
   getBlockArrayPositionForIndex,
   getBlockPositionForIndex,
   getBlockIndexForArrayPosition,
+  getClusterPositionForIndex,
+  getClusterArrayPositionForIndex,
   getBlockIndexForPosition,
   getNeighboursForPosition,
+  getNeighboursForWorldPosition,
   getNeightbourVerticesForNeighboursInBlocks,
   getBlockIndexForInstanceId,
 };
