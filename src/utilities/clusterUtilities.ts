@@ -1,9 +1,9 @@
 import { Vector3 } from 'three';
-import { BlockType } from '../components/DebugBlock';
+import { BlockType } from '../components/Block';
 import { clusterStore } from './clusterStore';
 
 const worldSize = new Vector3(2, 2, 2);
-const clusterSize = new Vector3(8, 8, 8);
+const clusterSize = new Vector3(4, 4, 4);
 const blockSize = new Vector3(1, 0.5, 1);
 
 const isBlockAtPosition = (position: Vector3): boolean => {
@@ -20,8 +20,30 @@ const isBlockAtPosition = (position: Vector3): boolean => {
   return true;
 };
 
-const isBlockBottomBlock = (index: number): boolean => {
-  return getBlockArrayPositionForIndex(index).y === 0;
+const getClusterPositionForWorldPosition = (position: Vector3, debug?: boolean): Vector3 => {
+  const clusterWorldSize = clusterSize.clone().multiply(blockSize);
+  const clusterOffset = clusterWorldSize.clone().divideScalar(2);
+  const worldOffset = worldSize.clone().divideScalar(2);
+  const clusterPosition = position
+    .clone()
+    .divide(clusterWorldSize)
+    .add(worldOffset)
+    .floor()
+    .addScalar(0.5)
+    .sub(worldOffset)
+    .multiply(clusterWorldSize);
+
+  if (debug) {
+    console.log('');
+    console.log('clusterWorldSize', clusterWorldSize);
+    console.log('clusterOffset', clusterOffset);
+    console.log('worldOffset', worldOffset);
+    console.log('position', position);
+    console.log('clusterPosition', clusterPosition);
+    console.log('');
+  }
+
+  return clusterPosition;
 };
 
 const getBlockArrayPositionForPosition = (position: Vector3): Vector3 => {
@@ -57,6 +79,18 @@ const getBlockPositionForIndex = (index: number): Vector3 => {
   const position = arrayPosition.clone().sub(offset).multiply(blockSize);
 
   return position;
+};
+
+const getBlockWorldPositionForIndexAndParentCluster = (index: number, parentCluster: number): Vector3 | null => {
+  const { clusters } = clusterStore.getState();
+
+  const cluster = clusters.find((cluster) => cluster.index === parentCluster);
+
+  if (cluster) {
+    const worldPosition = cluster.position.clone().add(cluster.blocks[index].position);
+  }
+
+  return cluster ? cluster.position.clone().add(cluster.blocks[index].position) : null;
 };
 
 const getClusterArrayPositionForIndex = (index: number): Vector3 => {
@@ -119,73 +153,85 @@ const getNeighboursForPosition = (position: Vector3) => {
   return [leftIndex, rightIndex, backIndex, frontIndex, bottomIndex, topIndex];
 };
 
-const getNeighboursForWorldPosition = (worldPosition: Vector3) => {
-  // const arrayPosition = getBlockArrayPositionForPosition(position);
-  // const left = worldPosition.clone().add(new Vector3(-blockSize.x, 0, 0));
-  // const right = worldPosition.clone().add(new Vector3(blockSize.x, 0, 0));
-  // const back = worldPosition.clone().add(new Vector3(0, 0, -blockSize.y));
-  // const front = worldPosition.clone().add(new Vector3(0, 0, blockSize.y));
-  // const bottom = worldPosition.clone().add(new Vector3(0, -blockSize.z, 0));
-  // const top = worldPosition.clone().add(new Vector3(0, blockSize.z, 0));
-  // const leftIndex = isBlockAtWorldPosition(left) ? getBlockIndexForArrayPosition(left) : -1;
-  // const rightIndex = isBlockAtWorldPosition(right) ? getBlockIndexForArrayPosition(right) : -1;
-  // const backIndex = isBlockAtWorldPosition(back) ? getBlockIndexForArrayPosition(back) : -1;
-  // const frontIndex = isBlockAtWorldPosition(front) ? getBlockIndexForArrayPosition(front) : -1;
-  // const bottomIndex = isBlockAtWorldPosition(bottom) ? getBlockIndexForArrayPosition(bottom) : -1;
-  // const topIndex = isBlockAtWorldPosition(top) ? getBlockIndexForArrayPosition(top) : -1;
-  // return [leftIndex, rightIndex, backIndex, frontIndex, bottomIndex, topIndex];
+const getBlockForWorldPosition = (position: Vector3, debug?: boolean): BlockType | null => {
+  const { clusters } = clusterStore.getState();
+  const clusterPosition = getClusterPositionForWorldPosition(position, debug);
+  const blockPosition = position.clone().sub(clusterPosition);
+  const cluster = clusters.find((cluster) => cluster.position.equals(clusterPosition));
+
+  const block = cluster?.blocks.find((block) => block.position.equals(blockPosition));
+
+  return block ? block : null;
 };
 
-const getNeightbourVerticesForNeighboursInBlocks = (neighbours: number[], blocks: BlockType[]): boolean[] => {
+const getNeighboursForWorldPosition = (position: Vector3): (BlockType | null)[] => {
+  const leftPosition = position.clone().add(new Vector3(-blockSize.x, 0, 0));
+  const rightPosition = position.clone().add(new Vector3(blockSize.x, 0, 0));
+  const backPosition = position.clone().add(new Vector3(0, 0, -blockSize.z));
+  const frontPosition = position.clone().add(new Vector3(0, 0, blockSize.z));
+  const bottomPosition = position.clone().add(new Vector3(0, -blockSize.y, 0));
+  const topPosition = position.clone().add(new Vector3(0, blockSize.y, 0));
+
+  return [
+    getBlockForWorldPosition(leftPosition),
+    getBlockForWorldPosition(rightPosition),
+    getBlockForWorldPosition(backPosition),
+    getBlockForWorldPosition(frontPosition),
+    getBlockForWorldPosition(bottomPosition),
+    getBlockForWorldPosition(topPosition),
+  ];
+};
+
+const getNeightbourVerticesForNeighboursInBlocks = (neighbours: (BlockType | null)[]): boolean[] => {
   const currentNeighbourVertices: boolean[] = [];
 
   // left 0 2 4 6 8
-  if (neighbours[0] >= 0) {
+  if (neighbours[0]) {
     currentNeighbourVertices.push(
-      blocks[neighbours[0]].vertices[3],
-      blocks[neighbours[0]].vertices[1],
-      blocks[neighbours[0]].vertices[7],
-      blocks[neighbours[0]].vertices[5],
-      blocks[neighbours[0]].vertices[9]
+      neighbours[0].vertices[3],
+      neighbours[0].vertices[1],
+      neighbours[0].vertices[7],
+      neighbours[0].vertices[5],
+      neighbours[0].vertices[9]
     );
   } else {
     currentNeighbourVertices.push(false, false, false, false, false);
   }
 
   // right 3 1 7 5 9
-  if (neighbours[1] >= 0) {
+  if (neighbours[1]) {
     currentNeighbourVertices.push(
-      blocks[neighbours[1]].vertices[0],
-      blocks[neighbours[1]].vertices[2],
-      blocks[neighbours[1]].vertices[4],
-      blocks[neighbours[1]].vertices[6],
-      blocks[neighbours[1]].vertices[8]
+      neighbours[1].vertices[0],
+      neighbours[1].vertices[2],
+      neighbours[1].vertices[4],
+      neighbours[1].vertices[6],
+      neighbours[1].vertices[8]
     );
   } else {
     currentNeighbourVertices.push(false, false, false, false, false);
   }
 
   // back 1 0 5 4 10
-  if (neighbours[2] >= 0) {
+  if (neighbours[2]) {
     currentNeighbourVertices.push(
-      blocks[neighbours[2]].vertices[1],
-      blocks[neighbours[2]].vertices[0],
-      blocks[neighbours[2]].vertices[5],
-      blocks[neighbours[2]].vertices[4],
-      blocks[neighbours[2]].vertices[10]
+      neighbours[2].vertices[1],
+      neighbours[2].vertices[0],
+      neighbours[2].vertices[5],
+      neighbours[2].vertices[4],
+      neighbours[2].vertices[10]
     );
   } else {
     currentNeighbourVertices.push(false, false, false, false, false);
   }
 
   // front 2 3 6 7 11
-  if (neighbours[3] >= 0) {
+  if (neighbours[3]) {
     currentNeighbourVertices.push(
-      blocks[neighbours[3]].vertices[2],
-      blocks[neighbours[3]].vertices[3],
-      blocks[neighbours[3]].vertices[6],
-      blocks[neighbours[3]].vertices[7],
-      blocks[neighbours[3]].vertices[11]
+      neighbours[3].vertices[2],
+      neighbours[3].vertices[3],
+      neighbours[3].vertices[6],
+      neighbours[3].vertices[7],
+      neighbours[3].vertices[11]
     );
   } else {
     currentNeighbourVertices.push(false, false, false, false, false);
@@ -194,39 +240,37 @@ const getNeightbourVerticesForNeighboursInBlocks = (neighbours: number[], blocks
   return currentNeighbourVertices;
 };
 
-const getBlockIndexForInstanceId = (instanceId: number): number => {
-  const { blocks } = clusterStore.getState();
+const calculateBlockNeighbours = (index: number, parentCluster: number) => {
+  const { clusters } = clusterStore.getState();
 
-  let indexForId = -1;
-  let counter = 0;
+  const cluster = clusters.find(({ index }) => index === parentCluster);
 
-  blocks.forEach((block, index) => {
-    if (block) {
-      if (counter === instanceId) {
-        indexForId = index;
-      }
-      counter++;
-    }
-  });
-
-  return indexForId;
+  if (cluster) {
+    const blocks = cluster.blocks.slice();
+    const position = getBlockPositionForIndex(index);
+    const worldPosition = clusters[parentCluster].position.clone().add(position);
+    blocks[index].neighbours = getNeighboursForWorldPosition(worldPosition);
+    cluster.blocks = blocks;
+    // set(() => ({ clusters: currentClusters }));
+  }
 };
 
 export {
   worldSize,
   clusterSize,
   blockSize,
-  isBlockAtPosition,
-  isBlockBottomBlock,
-  getBlockArrayPositionForPosition,
-  getBlockArrayPositionForIndex,
-  getBlockPositionForIndex,
-  getBlockIndexForArrayPosition,
+  // isBlockAtPosition,
+  getClusterPositionForWorldPosition,
   getClusterPositionForIndex,
-  getClusterArrayPositionForIndex,
+  // getClusterArrayPositionForIndex,
+  // getBlockArrayPositionForPosition,
+  // getBlockArrayPositionForIndex,
+  getBlockPositionForIndex,
+  // getBlockIndexForArrayPosition,
   getBlockIndexForPosition,
-  getNeighboursForPosition,
+  getBlockWorldPositionForIndexAndParentCluster,
+  // getNeighboursForPosition,
   getNeighboursForWorldPosition,
   getNeightbourVerticesForNeighboursInBlocks,
-  getBlockIndexForInstanceId,
+  calculateBlockNeighbours,
 };

@@ -1,11 +1,7 @@
 import { Instance, Instances } from '@react-three/drei';
-import { ThreeEvent, useFrame } from '@react-three/fiber';
-import { forwardRef, useEffect, useRef, useState } from 'react';
-import { InstancedMesh, Object3D, Raycaster, Vector3 } from 'three';
-import { useClusterStore } from '../utilities/clusterStore';
-import { getBlockIndexForInstanceId } from '../utilities/clusterUtilities';
-import { useInterfaceStore } from '../utilities/interfaceStore';
-import { BlockType } from './DebugBlock';
+import { forwardRef, useRef } from 'react';
+import { InstancedMesh, Vector3 } from 'three';
+import { BlockType } from './Block';
 
 type BlockColliderProps = {
   position: Vector3;
@@ -13,65 +9,42 @@ type BlockColliderProps = {
 };
 
 const BlockCollider = forwardRef<InstancedMesh, BlockColliderProps>(({ position, index }, ref) => {
-  const { setBlockHovered } = useInterfaceStore();
-  const { blocks } = useClusterStore();
+  // const { setBlockHovered } = useInterfaceStore();
+  // const { blocks } = useClusterStore();
 
-  const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation();
+  // const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
+  //   event.stopPropagation();
 
-    if (blocks[index].neighbours[5] >= 0) {
-      if (!blocks[blocks[index].neighbours[5]].isActive) {
-        setBlockHovered(index);
-      }
-    } else {
-      setBlockHovered(index);
-    }
-  };
+  //   if (blocks[index].neighbours[5] >= 0) {
+  //     if (!blocks[blocks[index].neighbours[5]].isActive) {
+  //       setBlockHovered(index);
+  //     }
+  //   } else {
+  //     setBlockHovered(index);
+  //   }
+  // };
 
   return <Instance ref={ref} position={position} />;
 });
 
-// type BlockCollidersProps = {
-//   blocks: BlockType[];
-// };
+type BlockCollidersProps = {
+  blocks: BlockType[];
+};
 
-const BlockColliders = () => {
+const BlockColliders = ({ blocks }: BlockCollidersProps) => {
   const colliderRefs = useRef<InstancedMesh[]>([]);
-  const { setBlockHovered, blockHovered } = useInterfaceStore();
-  const { blocks } = useClusterStore();
   const instances: BlockType[] = [];
 
   blocks.forEach((block) => {
     if (block.isActive) {
-      // const object = new Object3D();
-
-      // object.position.set(position.x, position.y, position.z);
-      // object.updateMatrix();
-
       instances.push(block);
     }
   });
 
-  const raycaster = new Raycaster();
-
-  useFrame(({ camera, mouse }) => {
-    raycaster.setFromCamera(mouse, camera);
-
-    const currentIntersections = raycaster.intersectObjects(colliderRefs.current, false);
-
-    if (currentIntersections.length === 0 && blockHovered) {
-      setBlockHovered(null);
-    }
-  });
-
-  useEffect(() => {
-    console.log('colliders rendered');
-  });
-
   return (
-    <Instances range={instances.length} visible={false}>
+    <Instances range={instances.length} visible={true}>
       <boxBufferGeometry args={[1, 0.5, 1]} />
-      <meshStandardMaterial color={'#44ff88'} wireframe={false} />
+      <meshStandardMaterial color={'#44ff88'} wireframe={true} />
       {instances.map((block, index) => (
         <BlockCollider
           ref={(ref) => {
@@ -87,7 +60,5 @@ const BlockColliders = () => {
     </Instances>
   );
 };
-
-BlockColliders.whyDidYouRender = true;
 
 export default BlockColliders;

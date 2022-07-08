@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import { useClusterStore } from '../utilities/clusterStore';
+import { Vector3 } from 'three';
 import { useInterfaceStore } from '../utilities/interfaceStore';
 import Block, { BlockType } from './Block';
-import BlockColliders from './BlockColliders';
-import { Vector3 } from 'three';
+import Colliders from './Colliders';
 
 type ClusterProps = {
-  index?: number;
+  index: number;
   position: Vector3;
   blocks: BlockType[];
 };
@@ -17,12 +16,13 @@ export type ClusterType = {
   blocks: BlockType[];
 };
 
-const Cluster = ({ position, blocks }: ClusterProps) => {
-  // const { blocks } = useClusterStore();
+const Cluster = ({ index, position, blocks }: ClusterProps) => {
   const { blockHovered } = useInterfaceStore();
 
   useEffect(() => {
-    console.log('cluster rendered');
+    if (index === 0) {
+      // console.log(blocks);
+    }
   }, []);
 
   return (
@@ -32,7 +32,8 @@ const Cluster = ({ position, blocks }: ClusterProps) => {
           return <Block key={'block-' + block.index} {...block} isDebugging={false} />;
         }
       })}
-      <BlockColliders />
+      <Colliders cluster={index} blocks={blocks} />
+      {/* <BlockColliders blocks={blocks} /> */}
     </group>
   );
 };

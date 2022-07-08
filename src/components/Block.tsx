@@ -1,55 +1,7 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { BoxGeometry, BufferAttribute, BufferGeometry, EdgesGeometry, Mesh, Vector3 } from 'three';
-import { useClusterStore } from '../utilities/clusterStore';
-import { getNeightbourVerticesForNeighboursInBlocks } from '../utilities/clusterUtilities';
-import VertexLabel from './VertexLabel';
+import { useEffect, useState } from 'react';
+import { BufferGeometry, Vector3 } from 'three';
 import { geometryFromTriangles, getWallTriangles } from '../utilities/blockUtilities';
-
-const vertexTable = [
-  [-0.5, -0.25, -0.5],
-  [0.5, -0.25, -0.5],
-  [-0.5, -0.25, 0.5],
-  [0.5, -0.25, 0.5],
-
-  [-0.5, 0.25, -0.5],
-  [0.5, 0.25, -0.5],
-  [-0.5, 0.25, 0.5],
-  [0.5, 0.25, 0.5],
-
-  [-0.5, 0, 0],
-  [0.5, 0, 0],
-  [0, 0, -0.5],
-  [0, 0, 0.5],
-];
-
-const neighbourTable = [
-  // left 0 2 4 6 8
-  [-0.65, -0.25, -0.5],
-  [-0.65, -0.25, 0.5],
-  [-0.65, 0.25, -0.5],
-  [-0.65, 0.25, 0.5],
-  [-0.65, 0, 0],
-  // right 3 1 7 5 9
-  [0.65, -0.25, 0.5],
-  [0.65, -0.25, -0.5],
-  [0.65, 0.25, 0.5],
-  [0.65, 0.25, -0.5],
-  [0.65, 0, 0],
-  // back 1 0 5 4 10
-  [0.5, -0.25, -0.65],
-  [-0.5, -0.25, -0.65],
-  [0.5, 0.25, -0.65],
-  [-0.5, 0.25, -0.65],
-  [0, 0, -0.65],
-  // front 2 3 6 7 11
-  [-0.5, -0.25, 0.65],
-  [0.5, -0.25, 0.65],
-  [-0.5, 0.25, 0.65],
-  [0.5, 0.25, 0.65],
-  [0, 0, 0.65],
-];
-
-//
+import { getNeightbourVerticesForNeighboursInBlocks } from '../utilities/clusterUtilities';
 
 const triangleTable = [
   // full
@@ -196,33 +148,13 @@ const triangleTable = [
   },
 ];
 
-type TriangleProps = {
-  vertices: number[];
-};
-
-const Triangle = ({ vertices }: TriangleProps) => {
-  const position = new Float32Array(vertices.map((index) => vertexTable[index]).flat());
-  // const ref = useRef<BufferGeometry|undefined>(undefined)
-  const attribute = new BufferAttribute(position, 3);
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', attribute);
-  geometry.computeVertexNormals();
-
-  return (
-    <mesh geometry={geometry}>
-      <meshStandardMaterial />
-    </mesh>
-  );
-};
-
-//
-
 export type BlockType = {
   index: number;
   isActive: boolean;
   position: Vector3;
   vertices: boolean[];
-  neighbours: number[];
+  neighbours: (BlockType | null)[];
+  parentCluster: number;
 };
 
 type BlockProps = {
@@ -230,16 +162,16 @@ type BlockProps = {
   isActive: boolean;
   position: Vector3;
   vertices: boolean[];
-  neighbours: number[];
+  neighbours: (BlockType | null)[];
+  parentCluster: number;
   isDebugging?: boolean;
 };
 
-const Block = ({ isActive, index, neighbours, position, vertices, isDebugging = false }: BlockProps) => {
-  const { blocks } = useClusterStore();
+const Block = ({ isActive, index, neighbours, position, vertices, parentCluster, isDebugging = false }: BlockProps) => {
   const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
 
   useEffect(() => {
-    const neighbourVertices: boolean[] = getNeightbourVerticesForNeighboursInBlocks(neighbours, blocks);
+    const neighbourVertices: boolean[] = getNeightbourVerticesForNeighboursInBlocks(neighbours);
 
     const tableIndex = vertices
       .map((vertex, index) => (vertex ? Math.pow(2, index) : 0))
